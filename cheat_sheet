@@ -1,0 +1,72 @@
+systemctl list-units # sockets and services
+systemctl list-units | grep .service # you can see e.g. the ssh.service
+systemctl start ssh.service
+systemctl status ssh.service # you can see if it is active/enabled - enabled means starts with startup of the computer
+sudo systemctl disable ssh.service # you need to use sudo to change things, not needed for status
+systemctl status ssh.service # it is not enabled
+systemctl stop ssh.service   # if you logged in with an established connection, it does not kill this connection
+
+
+systemctl --failed # e.g. if error message happens during start up, you can list it here. 
+systemctl status -> against the unit which was failed. 
+
+
+systemctl restart ssh.service # e.g. if made a change to config file to re-read it by the service
+systemctl is-enabled ssh  # says enabled or disabled
+
+systemctl enable ssh.service # in productive environment it leaves ssh port open, which you might not want to.
+systemctl disable ssh.service
+
+
+ systemctl reboot
+ systemctl poweroff
+ systemctl suspend
+ 
+ journalctl # you see everything in the log
+ journalctl -b # get you things from the boot
+ journalctl -u ssh.service
+ 
+ 
+ ########
+ example for an spark server
+ #######
+  
+ 1. create a yoursparkservice.service in /etc/systemd/system
+ 2. put this example into your file yoursparkservice.service
+ 
+------
+ [Unit]
+Description=Apache Spark Master and Slave Servers
+After=network.target
+After=systemd-user-sessions.service
+After=network-online.target
+
+[Service]
+User=spark
+Type=forking
+ExecStart=/opt/spark-1.6.1-bin-hadoop2.6/sbin/start-all.sh
+ExecStop=/opt/spark-1.6.1-bin-hadoop2.6/sbin/stop-all.sh
+TimeoutSec=30
+Restart=on-failure
+RestartSec=30
+StartLimitInterval=350
+StartLimitBurst=10
+
+[Install]
+WantedBy=multi-user.target
+ -----
+ 3. make sure that start-all.sh and stop-all.sh are executable by you: chmod u+x /.../.../start-all.sh
+ 4. enable it by:
+----
+sudo systemctl start yoursparkservice.service
+sudo systemctl stop yoursparkservice.service
+sudo systemctl enable yoursparkservice.service
+-----
+
+
+ 
+
+
+
+
+
